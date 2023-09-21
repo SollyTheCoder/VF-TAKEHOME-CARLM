@@ -40,9 +40,7 @@ app.post('/device', (req, res) => {
 
 // READ
 app.get("/device", (req, res) => {
-  const sql_query = `SELECT devices.*, industries.name AS industry_name
-  FROM devices
-  LEFT JOIN industries ON devices.linked_industry = industries.id;`
+  const sql_query = `SELECT * FROM devices`
   con.query(sql_query, (err, result) => {
     if (err) throw err
     res.send(result)
@@ -50,8 +48,7 @@ app.get("/device", (req, res) => {
 })
 app.get("/device/:deviceId", (req, res) => {
   const deviceId = req.params.deviceId;
-  const sql_query = `SELECT devices.*, industries.name AS industry_name FROM devices
-  LEFT JOIN industries ON devices.linked_industry = industries.id; WHERE devices.id = '${deviceId}'`
+  const sql_query = `SELECT * FROM devicesWHERE devices.id = '${deviceId}'`
   con.query(sql_query, (err, result) => {
     if (err) throw err
     res.send(result)

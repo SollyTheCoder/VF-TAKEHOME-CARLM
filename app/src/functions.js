@@ -1,5 +1,4 @@
 import axios from 'axios';
-import './App.css';
 
 export const fetchDevices = async () => {
   const data = await axios.get('http://localhost:5000/device')
@@ -28,8 +27,13 @@ export const fetchDevice = async (deviceId) => {
   return data
 }
 
-export const createDevice = async (name, warehouse_addition_time, fee, linked_industry) => {
-  const data = await axios.post(`http://localhost:5000/device`, { name, warehouse_addition_time, fee, linked_industry })
+export const createDevice = async (newDevice) => {
+  const data = await axios.post(`http://localhost:5000/device`, {
+    name: newDevice.name,
+    warehouse_addition_time: newDevice.warehouse_addition_time,
+    fee: newDevice.fee,
+    linked_industry: newDevice.linked_industry
+  })
     .then(response => {
       return response.data
     })
@@ -42,8 +46,13 @@ export const createDevice = async (name, warehouse_addition_time, fee, linked_in
   return data
 }
 
-export const updateDevice = async (id, name, warehouse_addition_time, fee, linked_industry) => {
-  const data = await axios.put(`http://localhost:5000/device/${id}`, { name, warehouse_addition_time, fee, linked_industry })
+export const updateDevice = async (updatedDevice) => {
+  const data = await axios.put(`http://localhost:5000/device/${updatedDevice.id}`, {
+    name: updatedDevice.name,
+    warehouse_addition_time: updatedDevice.warehouse_addition_time,
+    fee: updatedDevice.fee,
+    linked_industry: updatedDevice.linked_industry
+  })
     .then(response => {
       return response.data
     })
@@ -97,8 +106,8 @@ export const fetchIndustry = async (industryId) => {
   return data
 }
 
-export const createIndustry = async (name) => {
-  const data = await axios.post(`http://localhost:5000/industry`, { name })
+export const createIndustry = async (newIndustry) => {
+  const data = await axios.post(`http://localhost:5000/industry`, { name: newIndustry.name })
     .then(response => {
       return response.data
     })
@@ -110,8 +119,8 @@ export const createIndustry = async (name) => {
   return data
 }
 
-export const updateIndustry = async (id, name) => {
-  const data = await axios.put(`http://localhost:5000/industry/${id}`, { name })
+export const updateIndustry = async (updatedIndustry) => {
+  const data = await axios.put(`http://localhost:5000/industry/${updatedIndustry.id}`, { name: updatedIndustry.name })
     .then(response => {
       return response.data
     })

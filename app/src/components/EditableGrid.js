@@ -1,20 +1,21 @@
+import { FilterListOff } from '@mui/icons-material';
 import AddIcon from '@mui/icons-material/Add';
 import CancelIcon from '@mui/icons-material/Close';
 import DeleteIcon from '@mui/icons-material/DeleteOutlined';
 import EditIcon from '@mui/icons-material/Edit';
 import SaveIcon from '@mui/icons-material/Save';
-import Box from '@mui/material/Box';
-import Button from '@mui/material/Button';
+import { Box, Button } from '@mui/material';
 import { DataGrid, GridActionsCellItem, GridRowEditStopReasons, GridRowModes, GridToolbarContainer } from '@mui/x-data-grid';
 import { randomId } from '@mui/x-data-grid-generator';
 import * as React from 'react';
 
 function EditToolbar(props) {
-  const { setRows, setRowModesModel } = props;
+  const { setRows, setRowModesModel, newRowObject } = props;
 
   const handleClick = () => {
     const id = randomId();
-    setRows((oldRows) => [...oldRows, { id, warehouse_addition_time: '', fee: '', linked_industry: '', isNew: true }]);
+    console.log(newRowObject)
+    setRows((oldRows) => [...oldRows, { id, ...newRowObject, isNew: true }]);
     setRowModesModel((oldModel) => ({
       ...oldModel,
       [id]: { mode: GridRowModes.Edit, fieldToFocus: 'name' },
@@ -30,17 +31,15 @@ function EditToolbar(props) {
   );
 }
 
-export default function EditableDevicesGrid(props) {
-
-  React.useEffect(() => {
-    const preparedDevices = props.deviceData.map((device) => {
-      return { ...device, linked_industry: device.industry_name }
-    })
-    setRows(preparedDevices)
-  }, [props])
+export default function EditableGrid({ listData, deleteFunction, updateFunction, createFunction, fieldConfig, newRowObject }) {
 
   const [rows, setRows] = React.useState([]);
   const [rowModesModel, setRowModesModel] = React.useState({});
+
+  React.useEffect(() => {
+    console.log(listData)
+    setRows(listData)
+  }, [listData])
 
   const handleRowEditStop = (params, event) => {
     if (params.reason === GridRowEditStopReasons.rowFocusOut) {
@@ -56,11 +55,6 @@ export default function EditableDevicesGrid(props) {
     setRowModesModel({ ...rowModesModel, [id]: { mode: GridRowModes.View } });
   };
 
-  const handleDeleteClick = (id) => () => {
-    props.deleteFunction(id)
-    setRows(rows.filter((row) => row.id !== id));
-  };
-
   const handleCancelClick = (id) => () => {
     setRowModesModel({
       ...rowModesModel,
@@ -73,15 +67,17 @@ export default function EditableDevicesGrid(props) {
     }
   };
 
+  const handleDeleteClick = (id) => () => {
+    deleteFunction(id)
+    setRows(rows.filter((row) => row.id !== id));
+  };
+
   const processRowUpdate = async (newRow) => {
-    var updatedRow;
+    const requestResult = newRow.isNew ? await createFunction(newRow) : await updateFunction(newRow)
+    var updatedRow = { ...newRow, isNew: false };
+
     if (newRow.isNew) {
-      const createResult = await props.createFunction(newRow.name, newRow.warehouse_addition_time, newRow.fee, props.industryDict[newRow.linked_industry])
-      console.log(createResult.insertId)
-      updatedRow = { ...newRow, id: createResult.insertId, isNew: false };
-    } else {
-      props.updateFunction(newRow.id, newRow.name, newRow.warehouse_addition_time, newRow.fee, props.industryDict[newRow.linked_industry])
-      updatedRow = { ...newRow, isNew: false };
+      updatedRow = { ...updatedRow, id: requestResult.insertId };
     }
 
     setRows(rows.map((row) => (row.id === newRow.id ? updatedRow : row)));
@@ -93,16 +89,7 @@ export default function EditableDevicesGrid(props) {
   };
 
   const columns = [
-    { field: 'name', headerName: 'Name', width: 180, editable: true },
-    {
-      field: 'warehouse_addition_time', headerName: 'Warehouse Addition Time', type: 'number', width: 200, align: 'left', headerAlign: 'left', editable: true,
-    },
-    {
-      field: 'fee', headerName: 'Fee', type: 'number', width: 80, editable: true,
-    },
-    {
-      field: 'linked_industry', headerName: 'Industry', width: 220, editable: true, type: 'singleSelect', valueOptions: Object.keys(props.industryDict),
-    },
+    ...fieldConfig,
     {
       field: 'actions',
       type: 'actions',
@@ -176,7 +163,7 @@ export default function EditableDevicesGrid(props) {
           toolbar: EditToolbar,
         }}
         slotProps={{
-          toolbar: { setRows, setRowModesModel },
+          toolbar: { setRows, setRowModesModel, newRowObject },
         }}
       />
     </Box>
