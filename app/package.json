@@ -22,7 +22,8 @@
   "scripts": {
     "start": "react-scripts start",
     "build": "react-scripts build",
-    "test": "react-scripts test --coverage",
+    "test": "react-scripts test --coverage --watchAll=false",
+    "test-clear-cache": "react-scripts test --clearCache",
     "eject": "react-scripts eject"
   },
   "eslintConfig": {
@@ -57,6 +58,11 @@
     },
     "moduleNameMapper": {
       "axios": "axios/dist/node/axios.cjs"
-    }
+    },
+    "coveragePathIgnorePatterns": [
+      "node_modules",
+      "reportWebVitals.js",
+      "index.js"
+    ]
   }
 }

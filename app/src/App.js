@@ -77,7 +77,6 @@ function App() {
   };
 
   React.useEffect(() => {
-    console.log('fetch')
     fetchData();
   }, []);
 

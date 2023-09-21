@@ -1,4 +1,3 @@
-import { FilterListOff } from '@mui/icons-material';
 import AddIcon from '@mui/icons-material/Add';
 import CancelIcon from '@mui/icons-material/Close';
 import DeleteIcon from '@mui/icons-material/DeleteOutlined';
@@ -14,7 +13,6 @@ function EditToolbar(props) {
 
   const handleClick = () => {
     const id = randomId();
-    console.log(newRowObject)
     setRows((oldRows) => [...oldRows, { id, ...newRowObject, isNew: true }]);
     setRowModesModel((oldModel) => ({
       ...oldModel,
@@ -24,7 +22,7 @@ function EditToolbar(props) {
 
   return (
     <GridToolbarContainer>
-      <Button color="primary" startIcon={<AddIcon />} onClick={handleClick}>
+      <Button data-testid='create-button' color="primary" startIcon={<AddIcon />} onClick={handleClick}>
         Add record
       </Button>
     </GridToolbarContainer>
@@ -37,7 +35,6 @@ export default function EditableGrid({ listData, deleteFunction, updateFunction,
   const [rowModesModel, setRowModesModel] = React.useState({});
 
   React.useEffect(() => {
-    console.log(listData)
     setRows(listData)
   }, [listData])
 
@@ -73,7 +70,8 @@ export default function EditableGrid({ listData, deleteFunction, updateFunction,
   };
 
   const processRowUpdate = async (newRow) => {
-    const requestResult = newRow.isNew ? await createFunction(newRow) : await updateFunction(newRow)
+    const { isNew, id, ...values } = newRow
+    const requestResult = newRow.isNew ? await createFunction(values) : await updateFunction(newRow)
     var updatedRow = { ...newRow, isNew: false };
 
     if (newRow.isNew) {
@@ -108,6 +106,7 @@ export default function EditableGrid({ listData, deleteFunction, updateFunction,
                 color: 'primary.main',
               }}
               onClick={handleSaveClick(id)}
+              data-testid="save-button"
             />,
             <GridActionsCellItem
               icon={<CancelIcon />}
@@ -115,6 +114,7 @@ export default function EditableGrid({ listData, deleteFunction, updateFunction,
               className="textPrimary"
               onClick={handleCancelClick(id)}
               color="inherit"
+              data-testid="cancel-button"
             />,
           ];
         }
@@ -126,12 +126,14 @@ export default function EditableGrid({ listData, deleteFunction, updateFunction,
             className="textPrimary"
             onClick={handleEditClick(id)}
             color="inherit"
+            data-testid="edit-button"
           />,
           <GridActionsCellItem
             icon={<DeleteIcon />}
             label="Delete"
             onClick={handleDeleteClick(id)}
             color="inherit"
+            data-testid="delete-button"
           />,
         ];
       },
@@ -159,6 +161,7 @@ export default function EditableGrid({ listData, deleteFunction, updateFunction,
         onRowModesModelChange={handleRowModesModelChange}
         onRowEditStop={handleRowEditStop}
         processRowUpdate={processRowUpdate}
+        onProcessRowUpdateError={(error) => { }}
         slots={{
           toolbar: EditToolbar,
         }}
