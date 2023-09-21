@@ -4,22 +4,23 @@ import Dashboard from './components/Dashboard';
 import EditableGrid from './components/EditableGrid';
 import DevicesIcon from '@mui/icons-material/Devices';
 import FactoryIcon from '@mui/icons-material/Factory';
-import { createDevice, createIndustry, deleteDevice, deleteIndustry, fetchDevices, fetchIndustries, updateDevice, updateIndustry } from './functions';
+import { axiosRequest } from './functions';
 
 function App() {
 
   const [deviceData, setDeviceData] = React.useState([])
   const [industryData, setIndustryData] = React.useState([])
   const [industryDict, setIndustryDict] = React.useState({})
+  const apiUrl = 'http://localhost:5000'
 
   const pages = {
     industries: {
       icon: <DevicesIcon />, content:
         <EditableGrid
           listData={industryData}
-          deleteFunction={deleteIndustry}
-          updateFunction={updateIndustry}
-          createFunction={createIndustry}
+          deleteFunction={(id) => axiosRequest(`${apiUrl}/industry/${id}`, 'DELETE')}
+          updateFunction={(id, body) => axiosRequest(`${apiUrl}/industry/${id}`, 'PUT', body)}
+          createFunction={(body) => axiosRequest(`${apiUrl}/industry`, 'POST', body)}
           fieldConfig={[{ field: 'name', headerName: 'Name', width: 180, editable: true }]}
           newRowObject={{
             name: '',
@@ -30,9 +31,9 @@ function App() {
       icon: <FactoryIcon />, content:
         <EditableGrid
           listData={deviceData}
-          deleteFunction={deleteDevice}
-          updateFunction={updateDevice}
-          createFunction={createDevice}
+          deleteFunction={(id) => axiosRequest(`${apiUrl}/device/${id}`, 'DELETE')}
+          updateFunction={(id, body) => axiosRequest(`${apiUrl}/device/${id}`, 'PUT', body)}
+          createFunction={(body) => axiosRequest(`${apiUrl}/device`, 'POST', body)}
           fieldConfig={[{ field: 'name', headerName: 'Name', width: 180, editable: true },
           { field: 'warehouse_addition_time', headerName: 'Warehouse Addition Time', type: 'number', width: 200, align: 'left', headerAlign: 'left', editable: true, },
           { field: 'fee', headerName: 'Fee', type: 'number', width: 80, editable: true, },
@@ -59,13 +60,11 @@ function App() {
           }}
         />
     }
-    //<EditableIndustriesGrid industryData={industryData} deleteFunction={deleteIndustry} updateFunction={updateIndustry} createFunction={createIndustry} />
-    //<EditableDevicesGrid deviceData={deviceData} industryDict={industryDict} deleteFunction={deleteDevice} updateFunction={updateDevice} createFunction={createDevice} />
   }
 
   const fetchData = async () => {
-    const devicesResponse = await fetchDevices();
-    const industriesResponse = await fetchIndustries();
+    const devicesResponse = await axiosRequest(`${apiUrl}/device`, 'GET');
+    const industriesResponse = await axiosRequest(`${apiUrl}/industry`, 'GET');
     const industryDictionary = industriesResponse.reduce((dict, industry) => {
       dict[industry.id] = industry.name;
       return dict;

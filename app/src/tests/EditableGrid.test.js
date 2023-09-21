@@ -74,7 +74,8 @@ describe('Update functionality', () => {
     const saveButtons = screen.getAllByTestId('save-button', undefined, { timeout: 5000 });
     await act(async () => saveButtons[0].click());
 
-    expect(mockUpdateFunction).toHaveBeenCalledWith(industryData[0]);
+    const { id, ...expectedData } = industryData[0]
+    expect(mockUpdateFunction).toHaveBeenCalledWith(id, expectedData);
   });
 
   test('Fields are updated when saved', async () => {
@@ -95,7 +96,8 @@ describe('Update functionality', () => {
     const saveButtons = screen.getAllByTestId('save-button', undefined, { timeout: 5000 });
     await act(async () => saveButtons[0].click());
 
-    expect(mockUpdateFunction).toHaveBeenCalledWith({ ...industryData[0], name: newNameValue });
+    const { id, ...expectedData } = industryData[0]
+    expect(mockUpdateFunction).toHaveBeenCalledWith(id, { ...expectedData, name: newNameValue });
   });
 });
 

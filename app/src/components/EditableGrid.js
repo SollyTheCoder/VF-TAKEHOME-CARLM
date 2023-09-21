@@ -71,7 +71,7 @@ export default function EditableGrid({ listData, deleteFunction, updateFunction,
 
   const processRowUpdate = async (newRow) => {
     const { isNew, id, ...values } = newRow
-    const requestResult = newRow.isNew ? await createFunction(values) : await updateFunction(newRow)
+    const requestResult = isNew ? await createFunction(values) : await updateFunction(id, values)
     var updatedRow = { ...newRow, isNew: false };
 
     if (newRow.isNew) {
