@@ -9,11 +9,13 @@ import { randomId } from '@mui/x-data-grid-generator';
 import * as React from 'react';
 
 function EditToolbar(props) {
-  const { setRows, setRowModesModel, newRowObject } = props;
+  const { setRows, setRowModesModel } = props;
 
   const handleClick = () => {
     const id = randomId();
-    setRows((oldRows) => [...oldRows, { id, ...newRowObject, isNew: true }]);
+    setRows((oldRows) => [...oldRows, {
+      id, name: '', warehouse_addition_time: '', fee: '', linked_industry: '', isNew: true
+    }]);
     setRowModesModel((oldModel) => ({
       ...oldModel,
       [id]: { mode: GridRowModes.Edit, fieldToFocus: 'name' },
@@ -29,17 +31,20 @@ function EditToolbar(props) {
   );
 }
 
-export default function EditableGrid({ listData, deleteFunction, updateFunction, createFunction, fieldConfig, newRowObject }) {
+export default function DevicesGrid({ deviceData, industryDict, deleteFunction, updateFunction, createFunction, showErrorMessage }) {
 
-  const [rows, setRows] = React.useState([]);
+  const [rows, setRows] = React.useState(deviceData);
   const [rowModesModel, setRowModesModel] = React.useState({});
 
   React.useEffect(() => {
-    setRows(listData)
-  }, [listData])
+    setRows(deviceData)
+  }, [deviceData])
 
   const handleRowEditStop = (params, event) => {
-    if (params.reason === GridRowEditStopReasons.rowFocusOut) {
+    if (params.reason === GridRowEditStopReasons.escapeKeyDown ||
+      params.reason === GridRowEditStopReasons.rowFocusOut ||
+      params.reason === GridRowEditStopReasons.shiftTabKeyDown ||
+      params.reason === GridRowEditStopReasons.tabKeyDown) {
       event.defaultMuiPrevented = true;
     }
   };
@@ -62,23 +67,29 @@ export default function EditableGrid({ listData, deleteFunction, updateFunction,
     if (editedRow.isNew) {
       setRows(rows.filter((row) => row.id !== id));
     }
+    showErrorMessage('')
   };
 
-  const handleDeleteClick = (id) => () => {
-    deleteFunction(id)
+  const handleDeleteClick = (id) => async () => {
+    const { status } = await deleteFunction(id)
+    if (status !== 200) return showErrorMessage('Delete attempt failed')
     setRows(rows.filter((row) => row.id !== id));
+    showErrorMessage('')
   };
 
   const processRowUpdate = async (newRow) => {
-    const { isNew, id, ...values } = newRow
-    const requestResult = isNew ? await createFunction(values) : await updateFunction(id, values)
+    const { isNew } = newRow
+    const { data, status } = isNew ? await createFunction(newRow) : await updateFunction(newRow)
     var updatedRow = { ...newRow, isNew: false };
 
+    if (status !== 200) return showErrorMessage(data)
+
     if (newRow.isNew) {
-      updatedRow = { ...updatedRow, id: requestResult.insertId };
+      updatedRow = { ...updatedRow, id: data.insertId };
     }
 
     setRows(rows.map((row) => (row.id === newRow.id ? updatedRow : row)));
+    showErrorMessage('')
     return updatedRow;
   };
 
@@ -87,7 +98,29 @@ export default function EditableGrid({ listData, deleteFunction, updateFunction,
   };
 
   const columns = [
-    ...fieldConfig,
+    { field: 'name', headerName: 'Name', width: 180, editable: true },
+    { field: 'warehouse_addition_time', headerName: 'Warehouse Addition Time', type: 'number', width: 200, align: 'left', headerAlign: 'left', editable: true, },
+    { field: 'fee', headerName: 'Fee', type: 'number', width: 80, editable: true, },
+    {
+      field: 'linked_industry', headerName: 'Industry', width: 220, editable: true, type: 'singleSelect',
+      valueOptions: Object.values(industryDict),
+      valueGetter: (params) => {
+        const intValue = params.row.linked_industry;
+        return industryDict[intValue] || '';
+      },
+      valueSetter: (params) => {
+        try {
+
+          const intValue = Object.entries(industryDict).find(([key, value]) => value === params.value);
+          if (intValue) {
+            params.row.linked_industry = intValue[0];
+          }
+          return params.row
+        } catch (e) {
+          console.log(e)
+        }
+      },
+    },
     {
       field: 'actions',
       type: 'actions',
@@ -166,7 +199,7 @@ export default function EditableGrid({ listData, deleteFunction, updateFunction,
           toolbar: EditToolbar,
         }}
         slotProps={{
-          toolbar: { setRows, setRowModesModel, newRowObject },
+          toolbar: { setRows, setRowModesModel },
         }}
       />
     </Box>

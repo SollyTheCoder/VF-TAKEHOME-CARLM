@@ -1,31 +1,30 @@
 /* eslint-disable testing-library/no-unnecessary-act */
 import { act, fireEvent, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import EditableGrid from '../components/EditableGrid';
+import IndustriesGrid from '../components/IndustriesGrid';
 
 const mockDeleteFunction = jest.fn();
 const mockUpdateFunction = jest.fn();
 const mockCreateFunction = jest.fn();
+const mockErrorMessageFunction = jest.fn();
 
 const industryData = [{ id: 1, name: 'industry1' }, { id: 2, name: 'industry2' }]
-const industryFields = [{ field: 'name', headerName: 'Name', width: 180, editable: true, cellClassName: 'nameField' }]
-const industryNewObject = { name: 'starting name' }
+const newRowData = { name: 'industry3' }
 
-const renderEditableGrid = () => {
+const renderIndustriesGrid = () => {
   return render(
-    <EditableGrid
-      listData={industryData}
+    <IndustriesGrid
+      industryData={industryData}
       deleteFunction={mockDeleteFunction}
       updateFunction={mockUpdateFunction}
       createFunction={mockCreateFunction}
-      fieldConfig={industryFields}
-      newRowObject={industryNewObject}
+      showErrorMessage={mockErrorMessageFunction}
     />
   );
 };
 
 test('renders the EditableGrid component with given data present', () => {
-  renderEditableGrid()
+  renderIndustriesGrid()
 
   industryData.forEach((value) => {
     expect(screen.getByText(value.name)).toBeInTheDocument()
@@ -35,7 +34,7 @@ test('renders the EditableGrid component with given data present', () => {
 describe('Delete functionality', () => {
 
   test('delete button triggers delete function', () => {
-    renderEditableGrid();
+    renderIndustriesGrid();
     const deleteButtons = screen.getAllByTestId('delete-button');
     deleteButtons.forEach((deleteButton, index) => {
       fireEvent.click(deleteButton);
@@ -44,7 +43,7 @@ describe('Delete functionality', () => {
   });
 
   test('delete button removes deleted data', () => {
-    renderEditableGrid();
+    renderIndustriesGrid();
     const deleteButtons = screen.getAllByTestId('delete-button');
 
     expect(screen.getByText(industryData[0].name)).toBeInTheDocument();
@@ -65,7 +64,7 @@ describe('Delete functionality', () => {
 describe('Update functionality', () => {
 
   test('Save button triggers update function', async () => {
-    renderEditableGrid();
+    renderIndustriesGrid();
 
     // causes changes to state so much be wrapped in act
     const editButtons = screen.getAllByTestId('edit-button');
@@ -79,7 +78,7 @@ describe('Update functionality', () => {
   });
 
   test('Fields are updated when saved', async () => {
-    renderEditableGrid();
+    renderIndustriesGrid();
 
     const newNameValue = 'new name value'
 
@@ -103,25 +102,41 @@ describe('Update functionality', () => {
 
 describe('Create functionality', () => {
 
-  test('Create button creates new row with new starting values', async () => {
-    renderEditableGrid();
+  test('Create button creates input cells', async () => {
+    renderIndustriesGrid();
 
+    const startInputElements = screen.queryAllByRole('textbox');
+
+    // no editable cells
+    expect(startInputElements.length).toBe(0);
+
+    // click create
     const createButton = screen.getByTestId('create-button');
     await act(async () => createButton.click());
 
-    expect(screen.getByDisplayValue(industryNewObject.name)).toBeInTheDocument()
+    const endInputElements = screen.getAllByRole('textbox');
+
+    // 1 editable cell
+    expect(endInputElements.length).toBe(1);
+
   });
 
   test('Save button triggers create function', async () => {
-    renderEditableGrid();
+    renderIndustriesGrid();
 
+    // click create
     const createButton = screen.getByTestId('create-button');
     await act(async () => createButton.click());
 
+    // type a name
+    const inputNameElement = screen.getByRole('textbox');
+    act(() => { userEvent.type(inputNameElement, newRowData.name) })
+
+    // click save
     const saveButtons = screen.getByTestId('save-button', undefined, { timeout: 5000 });
     await act(async () => saveButtons.click());
 
-    expect(mockCreateFunction).toHaveBeenCalledWith({ name: industryNewObject.name });
+    expect(mockCreateFunction).toHaveBeenCalledWith(newRowData);
   });
 
 });
@@ -129,7 +144,7 @@ describe('Create functionality', () => {
 describe('Edit/Cancel Functionality', () => {
 
   test('Cancel button returns fields to display fields', async () => {
-    renderEditableGrid();
+    renderIndustriesGrid();
 
     // name is shown as display field
     expect(screen.getByText(industryData[0].name)).toBeInTheDocument()
@@ -148,17 +163,24 @@ describe('Edit/Cancel Functionality', () => {
   });
 
   test('Cancel button removes row if it was new', async () => {
-    renderEditableGrid();
+    renderIndustriesGrid();
 
+    // click create
     const createButton = screen.getByTestId('create-button');
     await act(async () => createButton.click());
 
+    // type a name
+    const inputNameElement = screen.getByRole('textbox');
+    console.log(inputNameElement)
+    act(() => { userEvent.type(inputNameElement, newRowData.name) })
+
+    // click cancel
     const cancelButton = screen.getByTestId('cancel-button')
     await act(async () => cancelButton.click());
 
     // expect name not to appear anywhere
-    expect(screen.queryByDisplayValue(industryNewObject.name)).toBeNull()
-    expect(screen.queryByText(industryNewObject.name)).toBeNull()
+    expect(screen.queryByDisplayValue(newRowData.name)).toBeNull()
+    expect(screen.queryByText(newRowData.name)).toBeNull()
   });
 });
 

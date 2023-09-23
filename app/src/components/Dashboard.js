@@ -1,12 +1,13 @@
 import {
   AppBar, Box, CssBaseline, Drawer, List, ListItem, ListItemButton, ListItemIcon, ListItemText, Toolbar, Typography,
 } from '@mui/material';
+import Alert from '@mui/material/Alert';
 
 import * as React from 'react';
 
 const drawerWidth = 240;
 
-export default function Dashboard({ onPageChange, pages, name }) {
+export default function Dashboard({ onPageChange, pages, name, errorMessage }) {
   const [selectedPage, setSelectedPage] = React.useState(Object.keys(pages)[0])
 
   return (
@@ -48,8 +49,9 @@ export default function Dashboard({ onPageChange, pages, name }) {
       </Drawer>
       <Box component="main" sx={{ flexGrow: 1, p: 3 }}>
         <Toolbar />
-        <p>{selectedPage}</p>
-        {pages[selectedPage].content}
+        {errorMessage !== '' && <Alert severity="error">{errorMessage}</Alert>}
+        <br></br>
+        {pages[selectedPage]?.content || <p>invalid page</p>}
       </Box>
     </Box>
   );
