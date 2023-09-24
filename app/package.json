@@ -62,7 +62,8 @@
     "coveragePathIgnorePatterns": [
       "node_modules",
       "reportWebVitals.js",
-      "index.js"
+      "index.js",
+      "constants.js"
     ]
   }
 }

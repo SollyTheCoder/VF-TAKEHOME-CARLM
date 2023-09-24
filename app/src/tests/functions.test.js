@@ -23,7 +23,7 @@ describe('axiosRequest Function', () => {
       data: {}
     });
 
-    expect(response).toEqual(testData.data);
+    expect(response.data).toEqual(testData.data);
   });
 
   it('should make a DELETE request and return data', async () => {
@@ -38,7 +38,7 @@ describe('axiosRequest Function', () => {
       data: {}
     });
 
-    expect(response).toEqual(testData.data);
+    expect(response.data).toEqual(testData.data);
   });
 
   it('should make a POST request and return data', async () => {
@@ -53,7 +53,7 @@ describe('axiosRequest Function', () => {
       data: requestData
     });
 
-    expect(response).toEqual(testData.data);
+    expect(response.data).toEqual(testData.data);
   });
 
   it('should make a PUT request and return data', async () => {
@@ -68,6 +68,30 @@ describe('axiosRequest Function', () => {
       data: requestData
     });
 
-    expect(response).toEqual(testData.data);
+    expect(response.data).toEqual(testData.data);
+  });
+
+  it('should handle error response', async () => {
+    const errorMessage = 'An error occurred';
+    const errorStatus = 500;
+
+    axios.mockRejectedValue({
+      response: {
+        data: { error: errorMessage },
+        status: errorStatus,
+      },
+    });
+
+    const method = 'GET';
+    const response = await axiosRequest(url, method);
+
+    expect(axios).toHaveBeenCalledWith({
+      url,
+      method,
+      data: {}
+    });
+
+    expect(response.data).toEqual(errorMessage);
+    expect(response.status).toEqual(errorStatus);
   });
 });

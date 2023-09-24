@@ -65,21 +65,26 @@ export default function DevicesGrid({ deviceData, industryDict, deleteFunction, 
 
     const editedRow = rows.find((row) => row.id === id);
     if (editedRow.isNew) {
-      setRows(rows.filter((row) => row.id !== id));
+      setTimeout(() => {
+        setRows(rows.filter((row) => row.id !== id));
+      });
     }
     showErrorMessage('')
   };
 
   const handleDeleteClick = (id) => async () => {
-    const { status } = await deleteFunction(id)
-    if (status !== 200) return showErrorMessage('Delete attempt failed')
+    const beforeRows = rows
     setRows(rows.filter((row) => row.id !== id));
-    showErrorMessage('')
+    const { status } = await deleteFunction(id)
+    if (status !== 200) {
+      setRows(beforeRows)
+      return showErrorMessage('Delete attempt failed')
+    }
   };
 
   const processRowUpdate = async (newRow) => {
-    const { isNew } = newRow
-    const { data, status } = isNew ? await createFunction(newRow) : await updateFunction(newRow)
+    const { id, isNew, name, warehouse_addition_time, fee, linked_industry } = newRow
+    const { data, status } = isNew ? await createFunction({ name, warehouse_addition_time, fee, linked_industry }) : await updateFunction({ id, name, warehouse_addition_time, fee, linked_industry })
     var updatedRow = { ...newRow, isNew: false };
 
     if (status !== 200) return showErrorMessage(data)
@@ -113,7 +118,7 @@ export default function DevicesGrid({ deviceData, industryDict, deleteFunction, 
 
           const intValue = Object.entries(industryDict).find(([key, value]) => value === params.value);
           if (intValue) {
-            params.row.linked_industry = intValue[0];
+            params.row.linked_industry = +intValue[0];
           }
           return params.row
         } catch (e) {
@@ -190,6 +195,7 @@ export default function DevicesGrid({ deviceData, industryDict, deleteFunction, 
         rows={rows}
         columns={columns}
         editMode="row"
+        disableVirtualization
         rowModesModel={rowModesModel}
         onRowModesModelChange={handleRowModesModelChange}
         onRowEditStop={handleRowEditStop}

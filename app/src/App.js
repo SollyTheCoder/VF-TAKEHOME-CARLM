@@ -1,29 +1,32 @@
+import DevicesIcon from '@mui/icons-material/Devices';
+import FactoryIcon from '@mui/icons-material/Factory';
 import React from 'react';
 import './App.css';
 import Dashboard from './components/Dashboard';
 import DevicesGrid from './components/DevicesGrid';
 import IndustriesGrid from './components/IndustriesGrid';
-import DevicesIcon from '@mui/icons-material/Devices';
-import FactoryIcon from '@mui/icons-material/Factory';
 
-import { axiosRequest } from './functions';
 import { errorPage, homePage } from './constants';
+import { ApiContext } from './context/ApiContextProvider';
+import { axiosRequest } from './functions';
 
-function App() {
+function App({ getData }) {
+  const [appInfo, setAppInfo] = React.useState({})
+  const apiUrl = React.useContext(ApiContext)
 
-  const [deviceData, setDeviceData] = React.useState([])
-  const [industryData, setIndustryData] = React.useState([])
-  const [industryDict, setIndustryDict] = React.useState({})
+  const updateData = async () => {
+    const data = await getData(apiUrl)
+    setAppInfo(data)
+  }
+
   const [errorMessage, setErrorMessage] = React.useState('')
-  const [applicationState, setApplicationState] = React.useState('loading')
-  const apiUrl = 'http://localhost:5000'
 
   const pages = {
     ...homePage,
     industries: {
       icon: <DevicesIcon />, content:
         <IndustriesGrid
-          industryData={industryData}
+          industryData={appInfo.industriesResponse?.data}
           deleteFunction={(id) => axiosRequest(`${apiUrl}/industry/${id}`, 'DELETE')}
           updateFunction={(data) => axiosRequest(`${apiUrl}/industry/${data.id}`, 'PUT', data)}
           createFunction={(body) => axiosRequest(`${apiUrl}/industry`, 'POST', body)}
@@ -33,8 +36,8 @@ function App() {
     devices: {
       icon: <FactoryIcon />, content:
         <DevicesGrid
-          deviceData={deviceData}
-          industryDict={industryDict}
+          deviceData={appInfo.devicesResponse?.data}
+          industryDict={appInfo.industriesDict}
           deleteFunction={(id) => axiosRequest(`${apiUrl}/device/${id}`, 'DELETE')}
           updateFunction={(data) => axiosRequest(`${apiUrl}/device/${data.id}`, 'PUT', data)}
           createFunction={(body) => axiosRequest(`${apiUrl}/device`, 'POST', body)}
@@ -43,32 +46,12 @@ function App() {
     },
   }
 
-  const fetchData = async () => {
-    try {
-      const devicesResponse = await axiosRequest(`${apiUrl}/device`, 'GET');
-      const industriesResponse = await axiosRequest(`${apiUrl}/industry`, 'GET');
-      setDeviceData(devicesResponse.data);
-      setIndustryData(industriesResponse.data);
-      setIndustryDict(industriesResponse.data.reduce((dict, industry) => {
-        dict[industry.id] = industry.name;
-        return dict;
-      }, {}));
-      setApplicationState('loaded')
-    } catch (e) {
-      console.log(e)
-      setApplicationState('failure')
-    }
-  };
-
   React.useEffect(() => {
-    fetchData()
-  }, []);
+    updateData()
+  }, [])
 
-  if (applicationState === 'loading') {
-    return <p>The page is loading</p>
-  }
 
-  if (applicationState === 'failure') {
+  if (appInfo.fail) {
     return <Dashboard
       onPageChange={() => { }}
       pages={errorPage}
@@ -77,16 +60,15 @@ function App() {
     />
   }
 
-  if (applicationState === 'loaded') {
-    return <Dashboard
-      onPageChange={() => {
-        fetchData()
-      }}
-      pages={pages}
-      name="Business Management Portal"
-      errorMessage={errorMessage}
-    />
-  }
+  return <Dashboard
+    onPageChange={() => {
+      updateData()
+      setErrorMessage('')
+    }}
+    pages={pages}
+    name="Business Management Portal"
+    errorMessage={errorMessage}
+  />
 }
 
 

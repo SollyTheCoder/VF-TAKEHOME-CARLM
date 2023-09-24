@@ -13,9 +13,7 @@ function EditToolbar(props) {
 
   const handleClick = () => {
     const id = randomId();
-    setRows((oldRows) => [...oldRows, {
-      id, name: '', isNew: true
-    }]);
+    setRows((oldRows) => [...oldRows, { id, name: '', isNew: true }]);
     setRowModesModel((oldModel) => ({
       ...oldModel,
       [id]: { mode: GridRowModes.Edit, fieldToFocus: 'name' },
@@ -35,10 +33,6 @@ export default function IndustriesGrid({ industryData, deleteFunction, updateFun
 
   const [rows, setRows] = React.useState(industryData);
   const [rowModesModel, setRowModesModel] = React.useState({});
-
-  React.useEffect(() => {
-    setRows(industryData)
-  }, [industryData])
 
   const handleRowEditStop = (params, event) => {
     if (params.reason === GridRowEditStopReasons.escapeKeyDown ||
@@ -65,21 +59,25 @@ export default function IndustriesGrid({ industryData, deleteFunction, updateFun
 
     const editedRow = rows.find((row) => row.id === id);
     if (editedRow.isNew) {
-      setRows(rows.filter((row) => row.id !== id));
+      setTimeout(() => {
+        setRows(rows.filter((row) => row.id !== id));
+      });
     }
     showErrorMessage('')
   };
 
   const handleDeleteClick = (id) => async () => {
-    const { status } = await deleteFunction(id)
-    if (status !== 200) return showErrorMessage('Delete attempt failed')
+    const beforeRows = rows
     setRows(rows.filter((row) => row.id !== id));
-    showErrorMessage('')
+    const { status } = await deleteFunction(id)
+    if (status !== 200) {
+      setRows(beforeRows)
+      return showErrorMessage('Delete attempt failed')
+    }
   };
 
   const processRowUpdate = async (newRow) => {
     const { id, isNew, name } = newRow
-    console.log('process: ' + name)
     const { data, status } = isNew ? await createFunction({ name }) : await updateFunction({ id, name })
     var updatedRow = { ...newRow, isNew: false };
 
@@ -170,6 +168,7 @@ export default function IndustriesGrid({ industryData, deleteFunction, updateFun
         columns={columns}
         editMode="row"
         rowModesModel={rowModesModel}
+        disableVirtualization
         onRowModesModelChange={handleRowModesModelChange}
         onRowEditStop={handleRowEditStop}
         processRowUpdate={processRowUpdate}
