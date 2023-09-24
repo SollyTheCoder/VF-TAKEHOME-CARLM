@@ -28,7 +28,7 @@ docker-compose up
 ```
 cd api
 npm i
-npm run dev
+npm run start
 ```
 
 3. React frontend
