@@ -63,7 +63,8 @@
       "node_modules",
       "reportWebVitals.js",
       "index.js",
-      "constants.js"
+      "constants.js",
+      "ApiContextProvider.js"
     ]
   }
 }

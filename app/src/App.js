@@ -10,8 +10,8 @@ import { errorPage, homePage } from './constants';
 import { ApiContext } from './context/ApiContextProvider';
 import { axiosRequest } from './functions';
 
-function App({ getData }) {
-  const [appInfo, setAppInfo] = React.useState({})
+function App({ getData, initialData }) {
+  const [appInfo, setAppInfo] = React.useState(initialData)
   const apiUrl = React.useContext(ApiContext)
 
   const updateData = async () => {
@@ -46,11 +46,6 @@ function App({ getData }) {
     },
   }
 
-  React.useEffect(() => {
-    updateData()
-  }, [])
-
-
   if (appInfo.fail) {
     return <Dashboard
       onPageChange={() => { }}
@@ -70,7 +65,5 @@ function App({ getData }) {
     errorMessage={errorMessage}
   />
 }
-
-
 
 export default App;

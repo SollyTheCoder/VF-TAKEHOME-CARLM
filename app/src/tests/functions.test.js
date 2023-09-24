@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { axiosRequest } from '../functions';
+import { axiosRequest, getData } from '../functions';
 
 jest.mock('axios');
 const url = 'http://localhost';
@@ -93,5 +93,74 @@ describe('axiosRequest Function', () => {
 
     expect(response.data).toEqual(errorMessage);
     expect(response.status).toEqual(errorStatus);
+  });
+});
+
+
+jest.mock('axios');
+const apiUrl = 'http://localhost';
+const devicesResponseData = [{ id: 1, name: 'Device 1' }];
+const industriesResponseData = [{ id: 1, name: 'Industry 1' }];
+
+describe('getData Function', () => {
+  afterEach(() => {
+    jest.clearAllMocks();
+  });
+
+  it('should fetch data successfully', async () => {
+    axios.mockResolvedValueOnce({ data: devicesResponseData, status: 200 });
+    axios.mockResolvedValueOnce({ data: industriesResponseData, status: 200 });
+
+    const result = await getData(apiUrl);
+
+    expect(axios).toHaveBeenNthCalledWith(1, {
+      method: 'GET',
+      url: `${apiUrl}/device`,
+      data: {}
+    });
+
+    expect(axios).toHaveBeenNthCalledWith(2, {
+      url: `${apiUrl}/industry`,
+      method: 'GET',
+      data: {}
+    });
+
+    expect(result.devicesResponse.data).toEqual(devicesResponseData);
+    expect(result.industriesResponse.data).toEqual(industriesResponseData);
+    expect(result.fail).toBeFalsy();
+  });
+
+  it('should handle error response', async () => {
+    const errorMessage = 'An error occurred';
+    const errorStatus = 500;
+
+    axios.mockRejectedValueOnce({
+      response: {
+        data: { error: errorMessage },
+        status: errorStatus,
+      },
+    });
+    axios.mockRejectedValueOnce({
+      response: {
+        data: { error: errorMessage },
+        status: errorStatus,
+      },
+    });
+
+    const result = await getData(apiUrl);
+
+    expect(axios).toHaveBeenNthCalledWith(1, {
+      url: `${apiUrl}/device`,
+      method: 'GET',
+      data: {}
+    });
+
+    expect(axios).toHaveBeenNthCalledWith(2, {
+      url: `${apiUrl}/industry`,
+      method: 'GET',
+      data: {}
+    });
+
+    expect(result.fail).toBeTruthy();
   });
 });

@@ -11,7 +11,9 @@ root.render(
   <React.StrictMode>
     <ApiContext.Provider value={'http://localhost:5000'}>
       <App
-        getData={getData} />
+        getData={getData}
+        initialData={await getData('http://localhost:5000')}
+      />
     </ApiContext.Provider>
   </React.StrictMode>
 );
