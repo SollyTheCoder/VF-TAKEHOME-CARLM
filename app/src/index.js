@@ -9,10 +9,10 @@ import { getData } from './functions';
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(
   <React.StrictMode>
-    <ApiContext.Provider value={'http://localhost:5000'}>
+    <ApiContext.Provider value={'http://localhost:5001'}>
       <App
         getData={getData}
-        initialData={await getData('http://localhost:5000')}
+        initialData={await getData('http://localhost:5001')}
       />
     </ApiContext.Provider>
   </React.StrictMode>
