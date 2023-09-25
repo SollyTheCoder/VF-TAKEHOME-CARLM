@@ -24,7 +24,7 @@ function App({ getData, initialData }) {
   const pages = {
     ...homePage,
     industries: {
-      icon: <DevicesIcon />, content:
+      icon: <FactoryIcon />, content:
         <IndustriesGrid
           industryData={appInfo.industriesResponse?.data}
           deleteFunction={(id) => axiosRequest(`${apiUrl}/industry/${id}`, 'DELETE')}
@@ -34,7 +34,7 @@ function App({ getData, initialData }) {
         />
     },
     devices: {
-      icon: <FactoryIcon />, content:
+      icon: <DevicesIcon />, content:
         <DevicesGrid
           deviceData={appInfo.devicesResponse?.data}
           industryDict={appInfo.industriesDict}
